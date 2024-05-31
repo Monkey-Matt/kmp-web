@@ -1,4 +1,11 @@
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.VisibilityThreshold
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -19,6 +26,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
@@ -31,18 +40,32 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 import kmpweb.composeapp.generated.resources.Res
 import kmpweb.composeapp.generated.resources.compose_multiplatform
 import kmpweb.composeapp.generated.resources.phone_hand
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 @Preview
 fun App() {
     MaterialTheme {
+        val phonePictureHeight = 1634
         val windowInfo = LocalWindowInfo.current
-        val screenHeight = (windowInfo.containerSize.height).coerceAtMost(1634).pxToDp
+        val screenHeight = (windowInfo.containerSize.height).coerceAtMost(phonePictureHeight).pxToDp
         val screenWidth = windowInfo.containerSize.width.pxToDp
 
-        var phoneState by remember { mutableStateOf(PhoneState(false)) }
+        var phoneState by remember { mutableStateOf(PhoneState(true)) }
         val toggleShowContent = { phoneState = phoneState.toggleShowContent() }
+
+        var initialInvisibility by remember { mutableStateOf(true) }
+        var phoneDisplayed by remember { mutableStateOf(false) }
+        val offsetAnimationSpec = spring(stiffness = Spring.StiffnessLow, visibilityThreshold = Dp.VisibilityThreshold)
+        val offsetX: Dp by animateDpAsState(if (phoneDisplayed) 0.dp else 100.dp, offsetAnimationSpec)
+        val offsetY: Dp by animateDpAsState(if (phoneDisplayed) 0.dp else screenHeight * 1.1f, offsetAnimationSpec)
+        val rotationDegrees by animateFloatAsState(if (phoneDisplayed) 0f else 40f, spring(stiffness = 300f))
+        LaunchedEffect(Unit) {
+            delay(1_000)
+            phoneDisplayed = true
+            initialInvisibility = false
+        }
 
         // TODO animate the transition between web and phone layouts
         if (screenWidth > 600.dp && screenHeight > 400.dp && screenWidth > (screenHeight * 0.9f)) {
@@ -53,10 +76,19 @@ fun App() {
                 WebContent(
                     phoneState  = phoneState,
                     onVisibilityButtonClick = toggleShowContent,
-                    screenWidth = screenWidth,
                     screenHeight = screenHeight,
-                    modifier = Modifier.align(Alignment.BottomCenter),
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .offset(x = offsetX, y = offsetY)
+                        .rotate(rotationDegrees)
+                        .alpha(if (initialInvisibility) 0f else 1f)
+                    ,
                 )
+                Button(
+                    onClick = { phoneDisplayed = !phoneDisplayed }
+                ) {
+                    Text("Trigger animation")
+                }
             }
         } else {
             PhoneContent(
@@ -72,7 +104,6 @@ fun App() {
 fun WebContent(
     phoneState: PhoneState,
     onVisibilityButtonClick: () -> Unit,
-    screenWidth: Dp,
     screenHeight: Dp,
     modifier: Modifier = Modifier,
 ) {
