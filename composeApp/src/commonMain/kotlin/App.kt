@@ -38,7 +38,7 @@ import kmpweb.composeapp.generated.resources.phone_hand
 fun App() {
     MaterialTheme {
         val windowInfo = LocalWindowInfo.current
-        val screenHeight = windowInfo.containerSize.height.pxToDp
+        val screenHeight = (windowInfo.containerSize.height).coerceAtMost(1634).pxToDp
         val screenWidth = windowInfo.containerSize.width.pxToDp
 
         var phoneState by remember { mutableStateOf(PhoneState(false)) }
@@ -92,8 +92,6 @@ fun WebContent(
         Image(
             painter = painterResource(Res.drawable.phone_hand),
             contentDescription = null,
-            modifier = Modifier.fillMaxHeight(),
-            contentScale = ContentScale.FillHeight
         )
     }
 }
