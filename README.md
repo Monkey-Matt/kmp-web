@@ -1,6 +1,6 @@
-Learning to run Kotlin Multiplatform on the web, following the guide: https://kotlinlang.org/docs/wasm-get-started.html#before-you-start
+Learning to run Kotlin Multiplatform on the web. Hosted on Github Pages, [see here.](https://monkey-matt.github.io/KMP-Web-Executable/)
 
-This is a Kotlin Multiplatform project targeting Android, iOS, Web.
+This project is targeting Web, Android, and iOS.
 
 * `/composeApp` is for code that will be shared across your Compose Multiplatform applications.
   It contains several subfolders:
@@ -13,9 +13,11 @@ This is a Kotlin Multiplatform project targeting Android, iOS, Web.
   you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
 
 
-
+  
 Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html),
 [Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform/#compose-multiplatform),
-[Kotlin/Wasm](https://kotl.in/wasm/)…
+[Kotlin/Wasm](https://kotl.in/wasm/),
+[Kotlin web setup guide](https://kotlinlang.org/docs/wasm-get-started.html#before-you-start)…
+
 
 You can open the web application by running the `:composeApp:wasmJsBrowserDevelopmentRun` Gradle task.
