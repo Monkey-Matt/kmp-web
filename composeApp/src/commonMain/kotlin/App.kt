@@ -1,25 +1,28 @@
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
@@ -29,7 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.Dp
@@ -38,7 +41,11 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 import kmpweb.composeapp.generated.resources.Res
+import kmpweb.composeapp.generated.resources.animation_filled
+import kmpweb.composeapp.generated.resources.animation_outline
 import kmpweb.composeapp.generated.resources.compose_multiplatform
+import kmpweb.composeapp.generated.resources.debug_filled
+import kmpweb.composeapp.generated.resources.debug_outline
 import kmpweb.composeapp.generated.resources.phone_hand
 import kotlinx.coroutines.delay
 
@@ -67,8 +74,12 @@ fun App() {
             initialInvisibility = false
         }
 
+        var showDebugInfo by remember { mutableStateOf(true) }
+
+        val showWebVersion = screenWidth > 600.dp && screenHeight > 400.dp && screenWidth > (screenHeight * 0.9f)
+
         // TODO animate the transition between web and phone layouts
-        if (screenWidth > 600.dp && screenHeight > 400.dp && screenWidth > (screenHeight * 0.9f)) {
+        if (showWebVersion) {
             Box(modifier = Modifier
                 .background(Color.LightGray)
                 .fillMaxSize()
@@ -84,11 +95,6 @@ fun App() {
                         .alpha(if (initialInvisibility) 0f else 1f)
                     ,
                 )
-                Button(
-                    onClick = { phoneDisplayed = !phoneDisplayed }
-                ) {
-                    Text("Trigger animation")
-                }
             }
         } else {
             PhoneContent(
@@ -96,6 +102,30 @@ fun App() {
                 onVisibilityButtonClick = toggleShowContent,
                 modifier = Modifier.fillMaxSize()
             )
+        }
+        Column(modifier = Modifier.padding(start = 8.dp)) {
+            Row {
+                AnimatedVisibility(showWebVersion) {
+                    WebToggleButton(
+                        filled = phoneDisplayed,
+                        filledIcon = painterResource(Res.drawable.animation_filled),
+                        outlineIcon = painterResource(Res.drawable.animation_outline),
+                        onClick = { phoneDisplayed = !phoneDisplayed },
+                    )
+                }
+                WebToggleButton(
+                    filled = showDebugInfo,
+                    filledIcon = painterResource(Res.drawable.debug_filled),
+                    outlineIcon = painterResource(Res.drawable.debug_outline),
+                    onClick = { showDebugInfo = !showDebugInfo },
+                )
+            }
+            AnimatedVisibility(showDebugInfo) {
+                Column {
+                    Text("width: $screenWidth, height $screenHeight")
+                    Text("initialV: $initialInvisibility, phone: $phoneDisplayed")
+                }
+            }
         }
     }
 }
@@ -129,6 +159,43 @@ fun WebContent(
 
 val Int.pxToDp @Composable
 get() = (this / LocalDensity.current.density).dp
+
+@Composable
+fun WebToggleButton(
+    filled: Boolean,
+    filledIcon: Painter,
+    outlineIcon: Painter,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    IconButton(
+        onClick = onClick,
+        modifier = modifier.size(48.dp)
+    ) {
+        AnimatedVisibility(
+            filled,
+            enter = fadeIn(),
+            exit = fadeOut(),
+        ) {
+            Icon(
+                filledIcon,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+        AnimatedVisibility(
+            !filled,
+            enter = fadeIn(),
+            exit = fadeOut(),
+        ) {
+            Icon(
+                outlineIcon,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+    }
+}
 
 
 @Composable
