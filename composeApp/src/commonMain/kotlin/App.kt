@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
@@ -25,6 +26,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material.Typography
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -137,19 +139,26 @@ fun WebContent(
     screenHeight: Dp,
     modifier: Modifier = Modifier,
 ) {
-    // FIXME make corner radius/padding/font size scale with screen height
+    // 400 = 1, 600 = 1.5, 800 = 2
+    val scaleFactor = (screenHeight.value/400)
+    // 400 = 0.5, 600 = 0.75, 800 = 1
+    val fontScaleFactor = (screenHeight.value/800)
+    val scaledTypography = MaterialTheme.typography.scale(fontScaleFactor)
+
     Box(modifier = modifier.wrapContentSize()) {
-        PhoneContent(
-            phoneState = phoneState,
-            onVisibilityButtonClick = onVisibilityButtonClick,
-            modifier = Modifier
-                .width(screenHeight * 0.35f)
-                .height(screenHeight * 0.75f)
-                .offset(screenHeight * 0.35f, screenHeight * 0.07f)
-                .background(Color.White, shape = RoundedCornerShape(30.dp))
-                .padding(top = 30.dp, bottom = 24.dp)
-                .padding(horizontal = 24.dp)
-        )
+        MaterialTheme(typography = scaledTypography) {
+            PhoneContent(
+                phoneState = phoneState,
+                onVisibilityButtonClick = onVisibilityButtonClick,
+                modifier = Modifier
+                    .width(screenHeight * 0.35f)
+                    .height(screenHeight * 0.75f)
+                    .offset(screenHeight * 0.35f, screenHeight * 0.07f)
+                    .background(Color.White, shape = RoundedCornerShape(15.dp * scaleFactor))
+                    .padding(top = 15.dp * scaleFactor, bottom = 12.dp * scaleFactor)
+                    .padding(horizontal = 12.dp * scaleFactor)
+            )
+        }
         Image(
             painter = painterResource(Res.drawable.phone_hand),
             contentDescription = null,
@@ -207,6 +216,7 @@ fun PhoneContent(
     val showContent = phoneState.showContent
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Button(onClick = onVisibilityButtonClick) {
+            // TODO strings resource?
             Text(if (showContent) "Hide Content" else "Show Content!")
         }
         AnimatedVisibility(showContent) {
