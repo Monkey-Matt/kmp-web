@@ -49,6 +49,8 @@ import kmpweb.composeapp.generated.resources.compose_multiplatform
 import kmpweb.composeapp.generated.resources.debug_filled
 import kmpweb.composeapp.generated.resources.debug_outline
 import kmpweb.composeapp.generated.resources.phone_hand
+import kmpweb.composeapp.generated.resources.smartphone_filled
+import kmpweb.composeapp.generated.resources.smartphone_outline
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -78,10 +80,12 @@ fun App() {
 
         var showDebugInfo by remember { mutableStateOf(false) }
 
-        val showWebVersion = screenWidth > 600.dp && screenHeight > 400.dp && screenWidth > (screenHeight * 0.9f)
+        val bigEnoughForWeb = screenWidth > 600.dp && screenHeight > 400.dp && screenWidth > (screenHeight * 0.9f)
+        var forcePhoneVersion by remember { mutableStateOf(false) }
+        val showWebVersion = derivedStateOf { bigEnoughForWeb && !forcePhoneVersion }
 
         // TODO animate the transition between web and phone layouts
-        if (showWebVersion) {
+        if (showWebVersion.value) {
             Box(modifier = Modifier
                 .background(Color.LightGray)
                 .fillMaxSize()
@@ -107,13 +111,23 @@ fun App() {
         }
         Column(modifier = Modifier.padding(start = 8.dp)) {
             Row {
-                AnimatedVisibility(showWebVersion) {
-                    WebToggleButton(
-                        filled = phoneDisplayed,
-                        filledIcon = painterResource(Res.drawable.animation_filled),
-                        outlineIcon = painterResource(Res.drawable.animation_outline),
-                        onClick = { phoneDisplayed = !phoneDisplayed },
-                    )
+                AnimatedVisibility(bigEnoughForWeb) {
+                    Row {
+                        WebToggleButton(
+                            filled = forcePhoneVersion,
+                            filledIcon = painterResource(Res.drawable.smartphone_filled),
+                            outlineIcon = painterResource(Res.drawable.smartphone_outline),
+                            onClick = { forcePhoneVersion = !forcePhoneVersion },
+                        )
+                        AnimatedVisibility(!forcePhoneVersion) {
+                            WebToggleButton(
+                                filled = phoneDisplayed,
+                                filledIcon = painterResource(Res.drawable.animation_filled),
+                                outlineIcon = painterResource(Res.drawable.animation_outline),
+                                onClick = { phoneDisplayed = !phoneDisplayed },
+                            )
+                        }
+                    }
                 }
                 WebToggleButton(
                     filled = showDebugInfo,
@@ -125,7 +139,7 @@ fun App() {
             AnimatedVisibility(showDebugInfo) {
                 Column {
                     Text("width: $screenWidth, height $screenHeight")
-                    Text("initialV: $initialInvisibility, phone: $phoneDisplayed")
+                    Text("initialV: $initialInvisibility, phone: $phoneDisplayed, forcePhone: $forcePhoneVersion")
                 }
             }
         }
@@ -214,7 +228,7 @@ fun PhoneContent(
     modifier: Modifier = Modifier
 ) {
     val showContent = phoneState.showContent
-    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(modifier.widthIn(max = 800.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Button(onClick = onVisibilityButtonClick) {
             // TODO strings resource?
             Text(if (showContent) "Hide Content" else "Show Content!")
