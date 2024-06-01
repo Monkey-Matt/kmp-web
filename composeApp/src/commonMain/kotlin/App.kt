@@ -74,7 +74,7 @@ fun App() {
             initialInvisibility = false
         }
 
-        var showDebugInfo by remember { mutableStateOf(true) }
+        var showDebugInfo by remember { mutableStateOf(false) }
 
         val showWebVersion = screenWidth > 600.dp && screenHeight > 400.dp && screenWidth > (screenHeight * 0.9f)
 
