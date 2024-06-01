@@ -1,4 +1,4 @@
-Learning to run Kotlin Multiplatform on the web. Hosted on Github Pages, [see here.](https://monkey-matt.github.io/KMP-Web-Executable/)
+### Learning to run Kotlin Multiplatform on the web. Hosted on Github Pages, [see here.](https://monkey-matt.github.io/KMP-Web-Executable/)
 
 This project is targeting Web, Android, and iOS.
 
@@ -17,7 +17,13 @@ This project is targeting Web, Android, and iOS.
 Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html),
 [Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform/#compose-multiplatform),
 [Kotlin/Wasm](https://kotl.in/wasm/),
+[KMP Setup Wizard](https://kmp.jetbrains.com/),
 [Kotlin web setup guide](https://kotlinlang.org/docs/wasm-get-started.html#before-you-start)…
 
+### Running locally
 
 You can open the web application by running the `:composeApp:wasmJsBrowserDevelopmentRun` Gradle task.
+
+### Building releases
+
+A release version is built using `:composeApp:wasmJsBrowserDistribution` Gradle task. The output files (found in `composeApp/build/dist/wasmJs/productionExecutable`) are saved to [a seperate repo](https://github.com/Monkey-Matt/KMP-Web-Executable) where Github Pages is enabled, automatically deploying any changes from the `main` branch.
