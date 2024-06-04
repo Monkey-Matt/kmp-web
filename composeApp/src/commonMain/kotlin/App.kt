@@ -6,6 +6,8 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -26,7 +28,6 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
-import androidx.compose.material.Typography
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -53,12 +54,13 @@ import kmpweb.composeapp.generated.resources.smartphone_filled
 import kmpweb.composeapp.generated.resources.smartphone_outline
 import kotlinx.coroutines.delay
 
+const val phonePictureHeight = 1634
+
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 @Preview
 fun App() {
     MaterialTheme {
-        val phonePictureHeight = 1634
         val windowInfo = LocalWindowInfo.current
         val screenHeight = (windowInfo.containerSize.height).coerceAtMost(phonePictureHeight).pxToDp
         val screenWidth = windowInfo.containerSize.width.pxToDp
@@ -72,42 +74,59 @@ fun App() {
         val offsetX: Dp by animateDpAsState(if (phoneDisplayed) 0.dp else 100.dp, offsetAnimationSpec)
         val offsetY: Dp by animateDpAsState(if (phoneDisplayed) 0.dp else screenHeight * 1.1f, offsetAnimationSpec)
         val rotationDegrees by animateFloatAsState(if (phoneDisplayed) 0f else 40f, spring(stiffness = 300f))
-        LaunchedEffect(Unit) {
-            delay(1_000)
-            phoneDisplayed = true
-            initialInvisibility = false
-        }
 
         var showDebugInfo by remember { mutableStateOf(false) }
 
         val bigEnoughForWeb = screenWidth > 600.dp && screenHeight > 400.dp && screenWidth > (screenHeight * 0.9f)
         var forcePhoneVersion by remember { mutableStateOf(false) }
-        val showWebVersion = derivedStateOf { bigEnoughForWeb && !forcePhoneVersion }
+        val shouldShowWebVersion = derivedStateOf { bigEnoughForWeb && !forcePhoneVersion }
+        var showWebVersion by remember { mutableStateOf(false) }
+        var showPhoneVersion by remember { mutableStateOf(false) }
 
-        // TODO animate the transition between web and phone layouts
-        if (showWebVersion.value) {
-            Box(modifier = Modifier
-                .background(Color.LightGray)
-                .fillMaxSize()
+        LaunchedEffect(shouldShowWebVersion.value) {
+            if (shouldShowWebVersion.value) {
+                showPhoneVersion = false
+                showWebVersion = true
+                if (initialInvisibility) {
+                    phoneDisplayed = false
+                    delay(400)
+                }
+                initialInvisibility = false
+                phoneDisplayed = true
+            } else {
+                if (!phoneDisplayed) {
+                    phoneDisplayed = true
+                    delay(500)
+                }
+                showPhoneVersion = true
+                showWebVersion = false
+            }
+        }
+
+        AnimatedVisibility(showPhoneVersion, enter = fadeIn() + scaleIn(initialScale = 0.5f), exit = fadeOut() + scaleOut(targetScale = 0.5f)) {
+            PhoneContent(
+                phoneState  = phoneState,
+                onVisibilityButtonClick = toggleShowContent,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+        AnimatedVisibility(showWebVersion, enter = fadeIn() + scaleIn(initialScale = 2f), exit = fadeOut() + scaleOut(targetScale = 2f)) {
+            Box(
+                modifier = Modifier
+                    .background(Color.LightGray)
+                    .fillMaxSize()
             ) {
                 WebContent(
-                    phoneState  = phoneState,
+                    phoneState = phoneState,
                     onVisibilityButtonClick = toggleShowContent,
                     screenHeight = screenHeight,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .offset(x = offsetX, y = offsetY)
                         .rotate(rotationDegrees)
-                        .alpha(if (initialInvisibility) 0f else 1f)
-                    ,
+                        .alpha(if (initialInvisibility) 0f else 1f),
                 )
             }
-        } else {
-            PhoneContent(
-                phoneState  = phoneState,
-                onVisibilityButtonClick = toggleShowContent,
-                modifier = Modifier.fillMaxSize()
-            )
         }
         Column(modifier = Modifier.padding(start = 8.dp)) {
             Row {
@@ -159,7 +178,7 @@ fun WebContent(
     val fontScaleFactor = (screenHeight.value/800)
     val scaledTypography = MaterialTheme.typography.scale(fontScaleFactor)
 
-    Box(modifier = modifier.wrapContentSize()) {
+    Box(modifier = modifier.wrapContentSize().offset(x = (-100).dp * (screenHeight.toPx / phonePictureHeight))) {
         MaterialTheme(typography = scaledTypography) {
             PhoneContent(
                 phoneState = phoneState,
@@ -182,6 +201,9 @@ fun WebContent(
 
 val Int.pxToDp @Composable
 get() = (this / LocalDensity.current.density).dp
+
+val Dp.toPx @Composable
+get() = (value * LocalDensity.current.density)
 
 @Composable
 fun WebToggleButton(
