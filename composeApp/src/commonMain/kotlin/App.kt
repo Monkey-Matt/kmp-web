@@ -12,7 +12,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -33,10 +36,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -56,14 +61,13 @@ import kotlinx.coroutines.delay
 
 const val phonePictureHeight = 1634
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 @Preview
 fun App() {
     MaterialTheme {
-        val windowInfo = LocalWindowInfo.current
-        val screenHeight = (windowInfo.containerSize.height).coerceAtMost(phonePictureHeight).pxToDp
-        val screenWidth = windowInfo.containerSize.width.pxToDp
+        val screenSizeInfo = getScreenSizeInfo()
+        val screenHeight = screenSizeInfo.hPX.coerceAtMost(phonePictureHeight).pxToDp
+        val screenWidth = screenSizeInfo.wDP
 
         var phoneState by remember { mutableStateOf(PhoneState(true)) }
         val toggleShowContent = { phoneState = phoneState.toggleShowContent() }
@@ -180,17 +184,24 @@ fun WebContent(
 
     Box(modifier = modifier.wrapContentSize().offset(x = (-100).dp * (screenHeight.toPx / phonePictureHeight))) {
         MaterialTheme(typography = scaledTypography) {
-            PhoneContent(
-                phoneState = phoneState,
-                onVisibilityButtonClick = onVisibilityButtonClick,
-                modifier = Modifier
-                    .width(screenHeight * 0.35f)
-                    .height(screenHeight * 0.75f)
-                    .offset(screenHeight * 0.35f, screenHeight * 0.07f)
-                    .background(Color.White, shape = RoundedCornerShape(15.dp * scaleFactor))
-                    .padding(top = 15.dp * scaleFactor, bottom = 12.dp * scaleFactor)
-                    .padding(horizontal = 12.dp * scaleFactor)
+            val safePadding = PaddingValues(
+                top = 15.dp * scaleFactor,
+                bottom = 12.dp * scaleFactor,
+                start = 12.dp * scaleFactor,
+                end = 12.dp * scaleFactor,
             )
+            CompositionLocalProvider(LocalSafePadding provides safePadding) {
+                PhoneContent(
+                    phoneState = phoneState,
+                    onVisibilityButtonClick = onVisibilityButtonClick,
+                    modifier = Modifier
+                        .width(screenHeight * 0.35f)
+                        .height(screenHeight * 0.75f)
+                        .offset(screenHeight * 0.35f, screenHeight * 0.07f)
+                        .clip(RoundedCornerShape(15.dp * scaleFactor))
+                        .background(Color.White)
+                )
+            }
         }
         Image(
             painter = painterResource(Res.drawable.phone_hand),
@@ -242,33 +253,7 @@ fun WebToggleButton(
     }
 }
 
-
-@Composable
-fun PhoneContent(
-    phoneState: PhoneState,
-    onVisibilityButtonClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val showContent = phoneState.showContent
-    Column(modifier.widthIn(max = 800.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        Button(onClick = onVisibilityButtonClick) {
-            // TODO strings resource?
-            Text(if (showContent) "Hide Content" else "Show Content!")
-        }
-        AnimatedVisibility(showContent) {
-            val greeting = remember { Greeting().greet() }
-            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                Image(painterResource(Res.drawable.compose_multiplatform), null)
-                Text("Compose: $greeting")
-            }
-        }
-    }
-}
-
-data class PhoneState(
-    val showContent: Boolean,
-) {
-    fun toggleShowContent(): PhoneState {
-        return this.copy(showContent = !showContent)
-    }
-}
+val LocalSafePadding = compositionLocalOf { PaddingValues(horizontal = 16.dp, vertical = 0.dp) }
+val PaddingValues.top: Dp get() = calculateTopPadding()
+val PaddingValues.bottom: Dp get() = calculateBottomPadding()
+val PaddingValues.horizontal: Dp @Composable get() = calculateStartPadding(LocalLayoutDirection.current)
