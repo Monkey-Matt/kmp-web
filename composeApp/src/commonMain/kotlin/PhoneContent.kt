@@ -1,4 +1,7 @@
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
@@ -13,23 +16,43 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material.TopAppBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.lerp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.lerp
 import kmpweb.composeapp.generated.resources.Res
 import kmpweb.composeapp.generated.resources.compose_multiplatform
 import kotlinx.coroutines.launch
@@ -37,7 +60,6 @@ import org.jetbrains.compose.resources.painterResource
 
 
 val maxWidth = 800.dp
-private val headerHeight = 475.dp
 
 data class PhoneState(
     val showContent: Boolean,
@@ -47,8 +69,12 @@ data class PhoneState(
     }
 }
 
+/**
+ * Built after following this tutorial:
+ * https://www.droidcon.com/2022/10/10/collapsing-toolbar-with-parallax-effect-and-curved-motion-in-jetpack-compose-%F0%9F%98%8E/
+ */
 @Composable
-fun PhoneContent(
+fun CollapsingToolbarPhoneContent(
     phoneState: PhoneState,
     onVisibilityButtonClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -58,20 +84,34 @@ fun PhoneContent(
 
 @Composable
 fun CollapsingToolbar(modifier: Modifier = Modifier) {
-    Box(modifier = modifier.fillMaxSize()) {
+    val headerHeight = 475.dp
+    var availableWidthPx by remember { mutableStateOf(0) }
+
+    Box(modifier = modifier.fillMaxSize().onGloballyPositioned {
+        availableWidthPx = it.size.width
+    }) {
         val scroll: ScrollState = rememberScrollState(0)
-        Header()
-        Body(scroll)
-//        Toolbar()
-//        Title()
+        Header(scroll, headerHeight)
+        Body(scroll, headerHeight)
+        Toolbar(scroll, headerHeight)
+        Title(scroll, headerHeight, availableWidthPx)
     }
 }
 
 @Composable
-private fun Header() {
-    val headerHeightPx = with(LocalDensity.current) { headerHeight.toPx() }
-
-    Box(modifier = Modifier.fillMaxWidth().height(headerHeight).padding(top = LocalSafePadding.current.top)) {
+private fun Header(scroll: ScrollState, headerHeight: Dp) {
+    val headerHeightPx = headerHeight.toPx - LocalSafePadding.current.top.toPx - 56.dp.toPx
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(headerHeight)
+            .padding(top = LocalSafePadding.current.top)
+            .graphicsLayer {
+                translationY = -scroll.value.toFloat() / 3f // Parallax effect
+                alpha = (-1f / headerHeightPx) * scroll.value + 1
+            }
+        ,
+    ) {
         Image(
             modifier = Modifier.align(Alignment.Center),
             painter = painterResource(Res.drawable.compose_multiplatform),
@@ -79,22 +119,11 @@ private fun Header() {
             contentScale = ContentScale.Fit,
             alignment = Alignment.Center,
         )
-
-        Box(
-            Modifier
-                .fillMaxSize()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(Color.Transparent, Color(0xAA000000)),
-                        startY = 3 * headerHeightPx / 4 // to wrap the title only
-                    )
-                )
-        )
     }
 }
 
 @Composable
-private fun Body(scroll: ScrollState) {
+private fun Body(scroll: ScrollState, headerHeight: Dp) {
     val coroutineScope = rememberCoroutineScope()
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -104,15 +133,6 @@ private fun Body(scroll: ScrollState) {
                 scroll,
                 coroutineScope = coroutineScope,
             )
-//            .verticalScroll(scroll)
-//            .draggable(
-//                orientation = Orientation.Vertical,
-//                state = rememberDraggableState { delta ->
-//                    coroutineScope.launch {
-//                        scroll.scrollBy(-delta)
-//                    }
-//                }
-//            )
         ,
     ) {
         Spacer(Modifier.height(headerHeight))
@@ -136,4 +156,112 @@ private fun Body(scroll: ScrollState) {
             }
         }
     }
+}
+
+@Composable
+private fun Toolbar(scroll: ScrollState, headerHeight: Dp) {
+    val toolbarHeight = 56.dp
+    val toolbarHeightPx = toolbarHeight.toPx + LocalSafePadding.current.top.toPx
+    val headerHeightPx = headerHeight.toPx
+    val toolbarBottom = headerHeightPx - toolbarHeightPx
+    val showToolbar by remember {
+        derivedStateOf { scroll.value >= toolbarBottom }
+    }
+
+    AnimatedVisibility(
+        visible = showToolbar,
+        enter = fadeIn(animationSpec = tween(300)),
+        exit = fadeOut(animationSpec = tween(300)),
+    ) {
+        Column {
+            TopAppBar(
+                modifier = Modifier
+                    .background(MaterialTheme.colors.background)
+                    .padding(top = LocalSafePadding.current.top)
+                    .height(toolbarHeight),
+                navigationIcon = {
+                    IconButton(
+                        onClick = {},
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .size(36.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Menu,
+                            contentDescription = "",
+                            tint = MaterialTheme.colors.onBackground,
+                        )
+                    }
+                },
+                title = {},
+                backgroundColor = Color.Transparent,
+                elevation = 0.dp
+            )
+
+            // Shadow
+            Box(
+                modifier = Modifier
+                    .height(3.dp)
+                    .fillMaxWidth()
+                    .background(brush = Brush.verticalGradient(colors = listOf(Color.Black.copy(alpha = 0.1f), Color.Transparent)))
+            )
+        }
+    }
+}
+
+@Composable
+private fun Title(scroll: ScrollState, headerHeight: Dp, availableWidthPx: Int) {
+    var titleHeightPx by remember { mutableStateOf(0f) }
+    val titleHeightDp = with(LocalDensity.current) { titleHeightPx.toDp() }
+    val toolbarHeight = 56.dp
+    val topSafePadding = LocalSafePadding.current.top
+    val horizontalSafePadding = LocalSafePadding.current.horizontal
+
+    var titleXOffset by remember { mutableStateOf(0.dp) }
+    val availableWidthDp = availableWidthPx.pxToDp
+    val titleWidth by derivedStateOf {
+        (availableWidthDp - titleXOffset) - (horizontalSafePadding)
+    }
+
+    val text = "Compose for ${getPlatform().name}"
+
+    val collapseRange: Float = (headerHeight.toPx - (toolbarHeight + topSafePadding).toPx)
+    val collapseFraction: Float = (scroll.value / collapseRange).coerceIn(0f, 1f)
+
+    val fontScale = lerp(
+        1.2f, // start X
+        1f, // end X
+        collapseFraction
+    )
+
+    Text(
+        text = text,
+        style = MaterialTheme.typography.h6.scale(fontScale).copy(fontWeight = FontWeight.Bold),
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier
+            .widthIn(max = titleWidth)
+            .graphicsLayer {
+                val titleY = lerp(
+                    headerHeight - titleHeightDp - 16.dp, // start Y
+                    toolbarHeight / 2 + topSafePadding - titleHeightDp / 2, // end Y
+                    collapseFraction
+                )
+
+                val titleX = lerp(
+                    horizontalSafePadding, // start X
+                    16.dp + 36.dp + 16.dp, // end X
+                    collapseFraction
+                )
+
+                translationY = titleY.toPx()
+                translationX = titleX.toPx()
+                titleXOffset = titleX
+            }
+            .onGloballyPositioned {
+                // We don't know title height in advance to calculate the lerp
+                // so we wait for initial composition
+                titleHeightPx = it.size.height.toFloat()
+            }
+    )
 }

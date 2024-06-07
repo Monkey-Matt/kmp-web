@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.dp
  * or below the scrollable view
  */
 @Composable
-fun <T: ScrollableState> VCInternalShadowScrollable(
+fun <T: ScrollableState> InternalShadowScrollable(
     modifier: Modifier = Modifier,
     listState: T,
     showTopShadow: Boolean = true,

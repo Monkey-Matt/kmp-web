@@ -108,7 +108,7 @@ fun App() {
         }
 
         AnimatedVisibility(showPhoneVersion, enter = fadeIn() + scaleIn(initialScale = 0.5f), exit = fadeOut() + scaleOut(targetScale = 0.5f)) {
-            PhoneContent(
+            CollapsingToolbarPhoneContent(
                 phoneState  = phoneState,
                 onVisibilityButtonClick = toggleShowContent,
                 modifier = Modifier.fillMaxSize()
@@ -191,7 +191,7 @@ fun WebContent(
                 end = 12.dp * scaleFactor,
             )
             CompositionLocalProvider(LocalSafePadding provides safePadding) {
-                PhoneContent(
+                CollapsingToolbarPhoneContent(
                     phoneState = phoneState,
                     onVisibilityButtonClick = onVisibilityButtonClick,
                     modifier = Modifier
