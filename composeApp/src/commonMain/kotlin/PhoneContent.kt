@@ -49,6 +49,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.coerceAtMost
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
@@ -84,11 +85,17 @@ fun CollapsingToolbarPhoneContent(
 
 @Composable
 fun CollapsingToolbar(modifier: Modifier = Modifier) {
-    val headerHeight = 475.dp
+    var availableHeightPx by remember { mutableStateOf(0) }
     var availableWidthPx by remember { mutableStateOf(0) }
+    val bottomSafePadding = LocalSafePadding.current.bottom
+    val density = LocalDensity.current
+    val headerHeight by derivedStateOf {
+        475.dp.coerceAtMost(with(density) { availableHeightPx.toDp() } - bottomSafePadding)
+    }
 
     Box(modifier = modifier.fillMaxSize().onGloballyPositioned {
         availableWidthPx = it.size.width
+        availableHeightPx = it.size.height
     }) {
         val scroll: ScrollState = rememberScrollState(0)
         Header(scroll, headerHeight)
@@ -164,9 +171,7 @@ private fun Toolbar(scroll: ScrollState, headerHeight: Dp) {
     val toolbarHeightPx = toolbarHeight.toPx + LocalSafePadding.current.top.toPx
     val headerHeightPx = headerHeight.toPx
     val toolbarBottom = headerHeightPx - toolbarHeightPx
-    val showToolbar by remember {
-        derivedStateOf { scroll.value >= toolbarBottom }
-    }
+    val showToolbar by derivedStateOf { scroll.value >= toolbarBottom }
 
     AnimatedVisibility(
         visible = showToolbar,
