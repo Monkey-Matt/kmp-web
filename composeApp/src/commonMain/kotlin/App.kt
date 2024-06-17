@@ -1,3 +1,5 @@
+
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.VisibilityThreshold
@@ -14,50 +16,52 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
-
 import kmpweb.composeapp.generated.resources.Res
 import kmpweb.composeapp.generated.resources.animation_filled
 import kmpweb.composeapp.generated.resources.animation_outline
-import kmpweb.composeapp.generated.resources.compose_multiplatform
 import kmpweb.composeapp.generated.resources.debug_filled
 import kmpweb.composeapp.generated.resources.debug_outline
+import kmpweb.composeapp.generated.resources.mac_frame
 import kmpweb.composeapp.generated.resources.phone_hand
 import kmpweb.composeapp.generated.resources.smartphone_filled
 import kmpweb.composeapp.generated.resources.smartphone_outline
 import kotlinx.coroutines.delay
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.ui.tooling.preview.Preview
 
 const val phonePictureHeight = 1634
 
@@ -74,10 +78,6 @@ fun App() {
 
         var initialInvisibility by remember { mutableStateOf(true) }
         var phoneDisplayed by remember { mutableStateOf(false) }
-        val offsetAnimationSpec = spring(stiffness = Spring.StiffnessLow, visibilityThreshold = Dp.VisibilityThreshold)
-        val offsetX: Dp by animateDpAsState(if (phoneDisplayed) 0.dp else 100.dp, offsetAnimationSpec)
-        val offsetY: Dp by animateDpAsState(if (phoneDisplayed) 0.dp else screenHeight * 1.1f, offsetAnimationSpec)
-        val rotationDegrees by animateFloatAsState(if (phoneDisplayed) 0f else 40f, spring(stiffness = 300f))
 
         var showDebugInfo by remember { mutableStateOf(false) }
 
@@ -115,24 +115,18 @@ fun App() {
             )
         }
         AnimatedVisibility(showWebVersion, enter = fadeIn() + scaleIn(initialScale = 2f), exit = fadeOut() + scaleOut(targetScale = 2f)) {
-            Box(
+            PhoneHandInLaptop(
+                phoneState = phoneState,
+                phoneDisplayed = phoneDisplayed,
+                initialInvisibility = initialInvisibility,
+                onVisibilityButtonClick = toggleShowContent,
+                screenHeight = screenHeight,
                 modifier = Modifier
-                    .background(Color.LightGray)
+                    .background(Color.White)
                     .fillMaxSize()
-            ) {
-                WebContent(
-                    phoneState = phoneState,
-                    onVisibilityButtonClick = toggleShowContent,
-                    screenHeight = screenHeight,
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .offset(x = offsetX, y = offsetY)
-                        .rotate(rotationDegrees)
-                        .alpha(if (initialInvisibility) 0f else 1f),
-                )
-            }
+            )
         }
-        Column(modifier = Modifier.padding(start = 8.dp)) {
+        Column(modifier = Modifier.padding(horizontal = 8.dp)) {
             Row {
                 AnimatedVisibility(bigEnoughForWeb) {
                     Row {
@@ -161,7 +155,7 @@ fun App() {
             }
             AnimatedVisibility(showDebugInfo) {
                 Column {
-                    Text("width: $screenWidth, height $screenHeight")
+                    Text("width: ${screenSizeInfo.wPX}, height ${screenSizeInfo.hPX}")
                     Text("initialV: $initialInvisibility, phone: $phoneDisplayed, forcePhone: $forcePhoneVersion")
                 }
             }
@@ -170,7 +164,64 @@ fun App() {
 }
 
 @Composable
-fun WebContent(
+fun PhoneHandInLaptop(
+    phoneState: PhoneState,
+    phoneDisplayed: Boolean,
+    initialInvisibility: Boolean,
+    onVisibilityButtonClick: () -> Unit,
+    screenHeight: Dp,
+    modifier: Modifier = Modifier,
+) {
+    val offsetAnimationSpec = spring(stiffness = Spring.StiffnessLow, visibilityThreshold = Dp.VisibilityThreshold)
+    val offsetX: Dp by animateDpAsState(if (phoneDisplayed) 0.dp else 100.dp, offsetAnimationSpec)
+    val offsetY: Dp by animateDpAsState(if (phoneDisplayed) 0.dp else screenHeight * 1.1f, offsetAnimationSpec)
+    val rotationDegrees by animateFloatAsState(if (phoneDisplayed) 0f else 40f, spring(stiffness = 300f))
+    val showLaptop = screenHeight > 1630.pxToDp
+
+    Box(modifier = modifier) {
+        val laptopWidthPx = 4967//4480
+        val laptopHeightPx = 3111//2806
+        Box(
+            modifier = Modifier
+                .size(
+                    width = (laptopWidthPx - 50).pxToDp,
+                    height = (laptopHeightPx - 50).pxToDp
+                )
+                .background(Color.LightGray)
+                .align(Alignment.Center)
+        )
+        PhoneInHand(
+            phoneState = phoneState,
+            onVisibilityButtonClick = onVisibilityButtonClick,
+            screenHeight = screenHeight,
+            modifier = Modifier
+                .align(Alignment.Center)
+                .offset(x = offsetX, y = offsetY)
+                .rotate(rotationDegrees)
+                .alpha(if (initialInvisibility) 0f else 1f),
+        )
+        AnimatedVisibility(
+            visible = showLaptop,
+            enter = fadeIn() + scaleIn(initialScale = 1.2f),
+            exit = fadeOut() + scaleOut(targetScale = 1.2f),
+            modifier = Modifier.align(Alignment.Center)
+        ) {
+            Image(
+                modifier = Modifier
+                    .offset(y = (-90).pxToDp)
+                    .wrapContentSize(align = Alignment.Center, unbounded = true)
+                    .size(width = laptopWidthPx.pxToDp, height = laptopHeightPx.pxToDp)
+                ,
+                painter = painterResource(Res.drawable.mac_frame),
+                contentDescription = null,
+                contentScale = ContentScale.FillBounds,
+            )
+        }
+    }
+}
+
+@Composable
+fun PhoneInHand(
     phoneState: PhoneState,
     onVisibilityButtonClick: () -> Unit,
     screenHeight: Dp,
