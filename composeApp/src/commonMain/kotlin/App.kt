@@ -12,6 +12,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -25,10 +26,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.DrawerState
+import androidx.compose.material.DrawerValue
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -69,94 +73,115 @@ const val phonePictureHeight = 1634
 @Preview
 fun App() {
     MaterialTheme {
-        val screenSizeInfo = getScreenSizeInfo()
-        val screenHeight = screenSizeInfo.hPX.coerceAtMost(phonePictureHeight).pxToDp
-        val screenWidth = screenSizeInfo.wDP
+        Box {
+            val screenSizeInfo = getScreenSizeInfo()
+            val screenHeight = screenSizeInfo.hPX.coerceAtMost(phonePictureHeight).pxToDp
+            val screenWidth = screenSizeInfo.wDP
 
-        var phoneState by remember { mutableStateOf(PhoneState(true)) }
-        val toggleShowContent = { phoneState = phoneState.toggleShowContent() }
+            var initialInvisibility by remember { mutableStateOf(true) }
+            var phoneDisplayed by remember { mutableStateOf(false) }
 
-        var initialInvisibility by remember { mutableStateOf(true) }
-        var phoneDisplayed by remember { mutableStateOf(false) }
+            var showDebugInfo by remember { mutableStateOf(false) }
 
-        var showDebugInfo by remember { mutableStateOf(false) }
+            val bigEnoughForWeb =
+                screenWidth > 600.dp && screenHeight > 400.dp && screenWidth > (screenHeight * 0.9f)
+            var forcePhoneVersion by remember { mutableStateOf(false) }
+            val shouldShowWebVersion = derivedStateOf { bigEnoughForWeb && !forcePhoneVersion }
+            var showWebVersion by remember { mutableStateOf(false) }
+            var showPhoneVersion by remember { mutableStateOf(false) }
 
-        val bigEnoughForWeb = screenWidth > 600.dp && screenHeight > 400.dp && screenWidth > (screenHeight * 0.9f)
-        var forcePhoneVersion by remember { mutableStateOf(false) }
-        val shouldShowWebVersion = derivedStateOf { bigEnoughForWeb && !forcePhoneVersion }
-        var showWebVersion by remember { mutableStateOf(false) }
-        var showPhoneVersion by remember { mutableStateOf(false) }
+            val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
-        LaunchedEffect(shouldShowWebVersion.value) {
-            if (shouldShowWebVersion.value) {
-                showPhoneVersion = false
-                showWebVersion = true
-                if (initialInvisibility) {
-                    phoneDisplayed = false
-                    delay(400)
-                }
-                initialInvisibility = false
-                phoneDisplayed = true
-            } else {
-                if (!phoneDisplayed) {
-                    phoneDisplayed = true
-                    delay(500)
-                }
-                showPhoneVersion = true
-                showWebVersion = false
-            }
-        }
-
-        AnimatedVisibility(showPhoneVersion, enter = fadeIn() + scaleIn(initialScale = 0.5f), exit = fadeOut() + scaleOut(targetScale = 0.5f)) {
-            CollapsingToolbarPhoneContent(
-                phoneState  = phoneState,
-                onVisibilityButtonClick = toggleShowContent,
-                modifier = Modifier.fillMaxSize()
-            )
-        }
-        AnimatedVisibility(showWebVersion, enter = fadeIn() + scaleIn(initialScale = 2f), exit = fadeOut() + scaleOut(targetScale = 2f)) {
-            PhoneHandInLaptop(
-                phoneState = phoneState,
-                phoneDisplayed = phoneDisplayed,
-                initialInvisibility = initialInvisibility,
-                onVisibilityButtonClick = toggleShowContent,
-                screenHeight = screenHeight,
-                modifier = Modifier
-                    .background(Color.White)
-                    .fillMaxSize()
-            )
-        }
-        Column(modifier = Modifier.padding(horizontal = 8.dp)) {
-            Row {
-                AnimatedVisibility(bigEnoughForWeb) {
-                    Row {
-                        WebToggleButton(
-                            filled = forcePhoneVersion,
-                            filledIcon = painterResource(Res.drawable.smartphone_filled),
-                            outlineIcon = painterResource(Res.drawable.smartphone_outline),
-                            onClick = { forcePhoneVersion = !forcePhoneVersion },
-                        )
-                        AnimatedVisibility(!forcePhoneVersion) {
-                            WebToggleButton(
-                                filled = phoneDisplayed,
-                                filledIcon = painterResource(Res.drawable.animation_filled),
-                                outlineIcon = painterResource(Res.drawable.animation_outline),
-                                onClick = { phoneDisplayed = !phoneDisplayed },
-                            )
-                        }
+            LaunchedEffect(shouldShowWebVersion.value) {
+                if (shouldShowWebVersion.value) {
+                    showPhoneVersion = false
+                    showWebVersion = true
+                    if (initialInvisibility) {
+                        phoneDisplayed = false
+                        delay(400)
                     }
+                    initialInvisibility = false
+                    phoneDisplayed = true
+                } else {
+                    if (!phoneDisplayed) {
+                        phoneDisplayed = true
+                        delay(500)
+                    }
+                    showPhoneVersion = true
+                    showWebVersion = false
                 }
-                WebToggleButton(
-                    filled = showDebugInfo,
-                    filledIcon = painterResource(Res.drawable.debug_filled),
-                    outlineIcon = painterResource(Res.drawable.debug_outline),
-                    onClick = { showDebugInfo = !showDebugInfo },
+            }
+
+            AnimatedVisibility(
+                showPhoneVersion,
+                enter = fadeIn() + scaleIn(initialScale = 0.5f),
+                exit = fadeOut() + scaleOut(targetScale = 0.5f)
+            ) {
+                CollapsingToolbarPhoneContent(
+                    drawerState = drawerState,
+                    modifier = Modifier.fillMaxSize()
                 )
             }
-            AnimatedVisibility(showDebugInfo) {
-                Column {
-                    Text("width: ${screenSizeInfo.wPX}, height ${screenSizeInfo.hPX}")
-                    Text("initialV: $initialInvisibility, phone: $phoneDisplayed, forcePhone: $forcePhoneVersion")
+            AnimatedVisibility(
+                showWebVersion,
+                enter = fadeIn() + scaleIn(initialScale = 2f),
+                exit = fadeOut() + scaleOut(targetScale = 2f)
+            ) {
+                PhoneHandInLaptop(
+                    drawerState = drawerState,
+                    phoneDisplayed = phoneDisplayed,
+                    initialInvisibility = initialInvisibility,
+                    screenHeight = screenHeight,
+                    modifier = Modifier
+                        .background(Color.White)
+                        .fillMaxSize()
+                )
+            }
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .background(
+                        color = MaterialTheme.colors.background,
+                        shape = RoundedCornerShape(topEnd = 8.dp),
+                    )
+                    .border(
+                        width = 2.dp,
+                        color = MaterialTheme.colors.onBackground,
+                        shape = RoundedCornerShape(topEnd = 8.dp),
+                    )
+                    .padding(horizontal = 8.dp).padding(top = 4.dp),
+            ) {
+                AnimatedVisibility(showDebugInfo) {
+                    Column {
+                        Text("width: ${screenSizeInfo.wPX}, height ${screenSizeInfo.hPX}")
+                        Text("initialV: $initialInvisibility, phone: $phoneDisplayed, forcePhone: $forcePhoneVersion")
+                    }
+                }
+                Row {
+                    AnimatedVisibility(bigEnoughForWeb) {
+                        Row {
+                            WebToggleButton(
+                                filled = forcePhoneVersion,
+                                filledIcon = painterResource(Res.drawable.smartphone_filled),
+                                outlineIcon = painterResource(Res.drawable.smartphone_outline),
+                                onClick = { forcePhoneVersion = !forcePhoneVersion },
+                            )
+                            AnimatedVisibility(!forcePhoneVersion) {
+                                WebToggleButton(
+                                    filled = phoneDisplayed,
+                                    filledIcon = painterResource(Res.drawable.animation_filled),
+                                    outlineIcon = painterResource(Res.drawable.animation_outline),
+                                    onClick = { phoneDisplayed = !phoneDisplayed },
+                                )
+                            }
+                        }
+                    }
+                    WebToggleButton(
+                        filled = showDebugInfo,
+                        filledIcon = painterResource(Res.drawable.debug_filled),
+                        outlineIcon = painterResource(Res.drawable.debug_outline),
+                        onClick = { showDebugInfo = !showDebugInfo },
+                    )
                 }
             }
         }
@@ -165,10 +190,9 @@ fun App() {
 
 @Composable
 fun PhoneHandInLaptop(
-    phoneState: PhoneState,
+    drawerState: DrawerState,
     phoneDisplayed: Boolean,
     initialInvisibility: Boolean,
-    onVisibilityButtonClick: () -> Unit,
     screenHeight: Dp,
     modifier: Modifier = Modifier,
 ) {
@@ -191,8 +215,7 @@ fun PhoneHandInLaptop(
                 .align(Alignment.Center)
         )
         PhoneInHand(
-            phoneState = phoneState,
-            onVisibilityButtonClick = onVisibilityButtonClick,
+            drawerState = drawerState,
             screenHeight = screenHeight,
             modifier = Modifier
                 .align(Alignment.Center)
@@ -222,8 +245,7 @@ fun PhoneHandInLaptop(
 
 @Composable
 fun PhoneInHand(
-    phoneState: PhoneState,
-    onVisibilityButtonClick: () -> Unit,
+    drawerState: DrawerState,
     screenHeight: Dp,
     modifier: Modifier = Modifier,
 ) {
@@ -243,8 +265,7 @@ fun PhoneInHand(
             )
             CompositionLocalProvider(LocalSafePadding provides safePadding) {
                 CollapsingToolbarPhoneContent(
-                    phoneState = phoneState,
-                    onVisibilityButtonClick = onVisibilityButtonClick,
+                    drawerState = drawerState,
                     modifier = Modifier
                         .width(screenHeight * 0.35f)
                         .height(screenHeight * 0.75f)

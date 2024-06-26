@@ -1,3 +1,4 @@
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -5,10 +6,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.rememberDraggableState
-import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -17,16 +14,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Button
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.runtime.Composable
@@ -41,7 +31,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
@@ -52,7 +41,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.coerceAtMost
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.lerp
 import kmpweb.composeapp.generated.resources.Res
 import kmpweb.composeapp.generated.resources.compose_multiplatform
@@ -62,29 +50,49 @@ import org.jetbrains.compose.resources.painterResource
 
 val maxWidth = 800.dp
 
-data class PhoneState(
-    val showContent: Boolean,
-) {
-    fun toggleShowContent(): PhoneState {
-        return this.copy(showContent = !showContent)
-    }
-}
-
 /**
  * Built after following this tutorial:
  * https://www.droidcon.com/2022/10/10/collapsing-toolbar-with-parallax-effect-and-curved-motion-in-jetpack-compose-%F0%9F%98%8E/
  */
 @Composable
 fun CollapsingToolbarPhoneContent(
-    phoneState: PhoneState,
-    onVisibilityButtonClick: () -> Unit,
+    drawerState: DrawerState,
     modifier: Modifier = Modifier
 ) {
-    CollapsingToolbar(modifier)
+    val drawerStateWorkaround = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+
+    ModalDrawer(
+        modifier = modifier,
+        drawerContent = {
+            DrawerContent(modifier = Modifier.padding(top = LocalSafePadding.current.top))
+        },
+        drawerState = drawerStateWorkaround,
+    ) {
+        CollapsingToolbar(
+            onMenuClick = {
+                scope.launch {
+                    if (drawerStateWorkaround.isOpen) drawerStateWorkaround.close() else drawerStateWorkaround.open()
+                }
+            }
+        )
+    }
 }
 
 @Composable
-fun CollapsingToolbar(modifier: Modifier = Modifier) {
+fun DrawerContent(modifier: Modifier = Modifier) {
+    Column(modifier = modifier) {
+        val safePaddingStart = LocalSafePadding.current.horizontal
+        Text(
+            "Drawer title",
+            modifier = Modifier.padding(vertical = 16.dp).padding(start = safePaddingStart),
+        )
+        Divider()
+    }
+}
+
+@Composable
+fun CollapsingToolbar(modifier: Modifier = Modifier, onMenuClick: () -> Unit) {
     var availableHeightPx by remember { mutableStateOf(0) }
     var availableWidthPx by remember { mutableStateOf(0) }
     val bottomSafePadding = LocalSafePadding.current.bottom
@@ -100,7 +108,7 @@ fun CollapsingToolbar(modifier: Modifier = Modifier) {
         val scroll: ScrollState = rememberScrollState(0)
         Header(scroll, headerHeight)
         Body(scroll, headerHeight)
-        Toolbar(scroll, headerHeight)
+        Toolbar(scroll, headerHeight, onMenuClick)
         Title(scroll, headerHeight, availableWidthPx)
     }
 }
@@ -166,7 +174,11 @@ private fun Body(scroll: ScrollState, headerHeight: Dp) {
 }
 
 @Composable
-private fun Toolbar(scroll: ScrollState, headerHeight: Dp) {
+private fun Toolbar(
+    scroll: ScrollState,
+    headerHeight: Dp,
+    onMenuClick: () -> Unit,
+) {
     val toolbarHeight = 56.dp
     val toolbarHeightPx = toolbarHeight.toPx + LocalSafePadding.current.top.toPx
     val headerHeightPx = headerHeight.toPx
@@ -186,7 +198,7 @@ private fun Toolbar(scroll: ScrollState, headerHeight: Dp) {
                     .height(toolbarHeight),
                 navigationIcon = {
                     IconButton(
-                        onClick = {},
+                        onClick = onMenuClick,
                         modifier = Modifier
                             .padding(horizontal = 16.dp)
                             .size(36.dp)
