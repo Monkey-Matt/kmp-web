@@ -26,4 +26,4 @@ You can open the web application by running the `:composeApp:wasmJsBrowserDevelo
 
 ### Building releases
 
-A release version is built using `:composeApp:wasmJsBrowserDistribution` Gradle task. The output files (found in `composeApp/build/dist/wasmJs/productionExecutable`) are saved to [a seperate repo](https://github.com/Monkey-Matt/KMP-Web-Executable) where Github Pages is enabled, automatically deploying any changes from the `main` branch.
+A release version is built using `:composeApp:wasmJsBrowserDistribution` Gradle task. The output files (found in `composeApp/build/dist/wasmJs/productionExecutable`) are saved to [a separate repo](https://github.com/Monkey-Matt/KMP-Web-Executable) where Github Pages is enabled, automatically deploying any changes from the `main` branch.

@@ -157,7 +157,7 @@ private fun Body(scroll: ScrollState, headerHeight: Dp) {
                 Modifier
                     .widthIn(max = maxWidth).align(Alignment.Center)
                     .padding(horizontal = LocalSafePadding.current.horizontal)
-                    .padding(bottom = LocalSafePadding.current.bottom)
+                    .padding(bottom = LocalSafePadding.current.bottom + 52.dp)
             ) {
                 repeat(5) {
                     Text(
