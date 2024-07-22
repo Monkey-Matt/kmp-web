@@ -6,16 +6,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
@@ -34,6 +27,10 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.UriHandler
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -157,20 +154,98 @@ private fun Body(scroll: ScrollState, headerHeight: Dp) {
                 Modifier
                     .widthIn(max = maxWidth).align(Alignment.Center)
                     .padding(horizontal = LocalSafePadding.current.horizontal)
-                    .padding(bottom = LocalSafePadding.current.bottom + 52.dp)
+                    .padding(top = 20.dp, bottom = LocalSafePadding.current.bottom + 72.dp)
+                ,
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                repeat(5) {
-                    Text(
-                        text = "stringResource(R.string.lorem_ipsum) and other words that make this get a little bit long. It needs to be basically a entire paragraph so that it looks legit. The red and brown fox jumps over the quirky looking little zebra.",
-                        style = MaterialTheme.typography.body1,
-                        textAlign = TextAlign.Justify,
-                        modifier = Modifier
-                            .padding(vertical = 16.dp)
-                    )
-                }
+                Text(
+                    text = "This project was created as a learning excercise to get up to speed with Kotlin Multiplatform on Web and to serve as an example/demo for future projects. It uses Compose Mutliplatform to run the same Kotlin code across Web, Android, and iOS.",
+                    style = MaterialTheme.typography.body1,
+                    textAlign = TextAlign.Justify,
+                )
+                Text(
+                    modifier = Modifier.padding(top = 12.dp),
+                    text = "Platforms",
+                    style = MaterialTheme.typography.h5,
+                    textAlign = TextAlign.Start,
+                )
+                Text(
+                    text = " - Web (WasmJs)\n - Android\n - iOS",
+                    style = MaterialTheme.typography.body1,
+                    textAlign = TextAlign.Start,
+                )
+                Text(
+                    modifier = Modifier.padding(top = 12.dp),
+                    text = "Repositories",
+                    style = MaterialTheme.typography.h5,
+                    textAlign = TextAlign.Start,
+                )
+
+                val projectUrl = "https://github.com/Monkey-Matt/kmp-web"
+                val demoUrl = "https://github.com/Monkey-Matt/KMP-Web-Executable"
+                val projectsString = "   Project: $projectUrl\n   Web Demo: $demoUrl"
+                ClickableText(
+                    text = projectsString,
+                    urls = listOf(projectUrl, demoUrl),
+                    style = MaterialTheme.typography.body1,
+                )
+                Text(
+                    modifier = Modifier.padding(top = 12.dp),
+                    text = "Libraries",
+                    style = MaterialTheme.typography.h5,
+                    textAlign = TextAlign.Start,
+                )
+                Text(
+                    text = "   Kotlin: ${KotlinVersion.CURRENT}\n   Kotlin Multiplatform\n   Compose Multiplatform",
+                    style = MaterialTheme.typography.body1,
+                    textAlign = TextAlign.Start,
+                )
+                Text(
+                    modifier = Modifier.padding(top = 12.dp),
+                    text = "Tutorials",
+                    style = MaterialTheme.typography.h5,
+                    textAlign = TextAlign.Start,
+                )
+                Text(
+                    text = "This project was built by initially following tutorials and adding my own experiments and ideas.",
+                    style = MaterialTheme.typography.body1,
+                    textAlign = TextAlign.Start,
+                )
+
+                val webGuideUrl = "https://kotlinlang.org/docs/wasm-get-started.html#before-you-start"
+                val collapsingToolbarUrl = "https://www.droidcon.com/2022/10/10/collapsing-toolbar-with-parallax-effect-and-curved-motion-in-jetpack-compose-%F0%9F%98%8E/"
+                val tutorialsString = "   Kotlin web guide: $webGuideUrl\n   Collapsing toolbar: $collapsingToolbarUrl"
+                ClickableText(
+                    text = tutorialsString,
+                    urls = listOf(webGuideUrl, collapsingToolbarUrl),
+                    style = MaterialTheme.typography.body1,
+                )
             }
         }
     }
+}
+
+@Composable
+fun ClickableText(
+    modifier: Modifier = Modifier,
+    text: String,
+    urls: List<String>,
+    style: TextStyle = TextStyle.Default,
+    uriHandler: UriHandler = LocalUriHandler.current,
+) {
+    val annotatedString = buildAnnotatedString {
+        append(text)
+        addLinks(urls)
+    }
+    ClickableText(
+        modifier = modifier,
+        text = annotatedString,
+        style = style,
+        onClick = { index ->
+            val clickedUrl = annotatedString.getStringAnnotations(index, index).firstOrNull { it.tag == "URL" }?.item
+            clickedUrl?.let { uriHandler.openUri(it) }
+        }
+    )
 }
 
 @Composable

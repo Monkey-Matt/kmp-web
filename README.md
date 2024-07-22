@@ -17,8 +17,11 @@ This project is targeting Web, Android, and iOS.
 Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html),
 [Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform/#compose-multiplatform),
 [Kotlin/Wasm](https://kotl.in/wasm/),
-[KMP Setup Wizard](https://kmp.jetbrains.com/),
-[Kotlin web setup guide](https://kotlinlang.org/docs/wasm-get-started.html#before-you-start)…
+[KMP Setup Wizard](https://kmp.jetbrains.com/)...
+
+Tutorials used
+[Kotlin web setup guide](https://kotlinlang.org/docs/wasm-get-started.html#before-you-start),
+[Collapsing toolbar](https://www.droidcon.com/2022/10/10/collapsing-toolbar-with-parallax-effect-and-curved-motion-in-jetpack-compose-%F0%9F%98%8E/)
 
 ### Running locally
 
