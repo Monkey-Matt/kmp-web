@@ -163,6 +163,7 @@ private fun Body(scroll: ScrollState, headerHeight: Dp) {
                     style = MaterialTheme.typography.body1,
                     textAlign = TextAlign.Justify,
                 )
+
                 Text(
                     modifier = Modifier.padding(top = 12.dp),
                     text = "Platforms",
@@ -174,13 +175,13 @@ private fun Body(scroll: ScrollState, headerHeight: Dp) {
                     style = MaterialTheme.typography.body1,
                     textAlign = TextAlign.Start,
                 )
+
                 Text(
                     modifier = Modifier.padding(top = 12.dp),
                     text = "Repositories",
                     style = MaterialTheme.typography.h5,
                     textAlign = TextAlign.Start,
                 )
-
                 val projectUrl = "https://github.com/Monkey-Matt/kmp-web"
                 val demoUrl = "https://github.com/Monkey-Matt/KMP-Web-Executable"
                 val projectsString = "   Project: $projectUrl\n   Web Demo: $demoUrl"
@@ -189,6 +190,7 @@ private fun Body(scroll: ScrollState, headerHeight: Dp) {
                     urls = listOf(projectUrl, demoUrl),
                     style = MaterialTheme.typography.body1,
                 )
+
                 Text(
                     modifier = Modifier.padding(top = 12.dp),
                     text = "Libraries",
@@ -200,6 +202,7 @@ private fun Body(scroll: ScrollState, headerHeight: Dp) {
                     style = MaterialTheme.typography.body1,
                     textAlign = TextAlign.Start,
                 )
+
                 Text(
                     modifier = Modifier.padding(top = 12.dp),
                     text = "Tutorials",
@@ -211,7 +214,6 @@ private fun Body(scroll: ScrollState, headerHeight: Dp) {
                     style = MaterialTheme.typography.body1,
                     textAlign = TextAlign.Start,
                 )
-
                 val webGuideUrl = "https://kotlinlang.org/docs/wasm-get-started.html#before-you-start"
                 val collapsingToolbarUrl = "https://www.droidcon.com/2022/10/10/collapsing-toolbar-with-parallax-effect-and-curved-motion-in-jetpack-compose-%F0%9F%98%8E/"
                 val tutorialsString = "   Kotlin web guide: $webGuideUrl\n   Collapsing toolbar: $collapsingToolbarUrl"
