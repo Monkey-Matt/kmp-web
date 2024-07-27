@@ -40,9 +40,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.util.lerp
 import kmpweb.composeapp.generated.resources.Res
-import kmpweb.composeapp.generated.resources.compose_multiplatform
+import kmpweb.composeapp.generated.resources.*
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 
 val maxWidth = 800.dp
@@ -159,32 +160,32 @@ private fun Body(scroll: ScrollState, headerHeight: Dp) {
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Text(
-                    text = "This project was created as a learning excercise to get up to speed with Kotlin Multiplatform on Web and to serve as an example/demo for future projects. It uses Compose Mutliplatform to run the same Kotlin code across Web, Android, and iOS.",
+                    text = stringResource(Res.string.about_details),
                     style = MaterialTheme.typography.body1,
                     textAlign = TextAlign.Justify,
                 )
 
                 Text(
                     modifier = Modifier.padding(top = 12.dp),
-                    text = "Platforms",
+                    text = stringResource(Res.string.platforms_title),
                     style = MaterialTheme.typography.h5,
                     textAlign = TextAlign.Start,
                 )
                 Text(
-                    text = " - Web (WasmJs)\n - Android\n - iOS",
+                    text = stringResource(Res.string.platforms_details),
                     style = MaterialTheme.typography.body1,
                     textAlign = TextAlign.Start,
                 )
 
                 Text(
                     modifier = Modifier.padding(top = 12.dp),
-                    text = "Repositories",
+                    text = stringResource(Res.string.repositories_title),
                     style = MaterialTheme.typography.h5,
                     textAlign = TextAlign.Start,
                 )
                 val projectUrl = "https://github.com/Monkey-Matt/kmp-web"
                 val demoUrl = "https://github.com/Monkey-Matt/KMP-Web-Executable"
-                val projectsString = "   Project: $projectUrl\n   Web Demo: $demoUrl"
+                val projectsString = stringResource(Res.string.repositories_details, projectUrl, demoUrl)
                 ClickableText(
                     text = projectsString,
                     urls = listOf(projectUrl, demoUrl),
@@ -193,30 +194,30 @@ private fun Body(scroll: ScrollState, headerHeight: Dp) {
 
                 Text(
                     modifier = Modifier.padding(top = 12.dp),
-                    text = "Libraries",
+                    text = stringResource(Res.string.libraries_title),
                     style = MaterialTheme.typography.h5,
                     textAlign = TextAlign.Start,
                 )
                 Text(
-                    text = "   Kotlin: ${KotlinVersion.CURRENT}\n   Kotlin Multiplatform\n   Compose Multiplatform",
+                    text = stringResource(Res.string.libraries_details, KotlinVersion.CURRENT),
                     style = MaterialTheme.typography.body1,
                     textAlign = TextAlign.Start,
                 )
 
                 Text(
                     modifier = Modifier.padding(top = 12.dp),
-                    text = "Tutorials",
+                    text = stringResource(Res.string.tutorials_title),
                     style = MaterialTheme.typography.h5,
                     textAlign = TextAlign.Start,
                 )
                 Text(
-                    text = "This project was built by initially following tutorials and adding my own experiments and ideas.",
+                    text = stringResource(Res.string.tutorials_details_1),
                     style = MaterialTheme.typography.body1,
                     textAlign = TextAlign.Start,
                 )
                 val webGuideUrl = "https://kotlinlang.org/docs/wasm-get-started.html#before-you-start"
                 val collapsingToolbarUrl = "https://www.droidcon.com/2022/10/10/collapsing-toolbar-with-parallax-effect-and-curved-motion-in-jetpack-compose-%F0%9F%98%8E/"
-                val tutorialsString = "   Kotlin web guide: $webGuideUrl\n   Collapsing toolbar: $collapsingToolbarUrl"
+                val tutorialsString = stringResource(Res.string.tutorials_details_2, webGuideUrl, collapsingToolbarUrl)
                 ClickableText(
                     text = tutorialsString,
                     urls = listOf(webGuideUrl, collapsingToolbarUrl),
@@ -317,7 +318,7 @@ private fun Title(scroll: ScrollState, headerHeight: Dp, availableWidthPx: Int) 
         (availableWidthDp - titleXOffset) - (horizontalSafePadding)
     }
 
-    val text = "Compose for ${getPlatform().name}"
+    val text = stringResource(Res.string.title, getPlatform().name)
 
     val collapseRange: Float = (headerHeight.toPx - (toolbarHeight + topSafePadding).toPx)
     val collapseFraction: Float = (scroll.value / collapseRange).coerceIn(0f, 1f)

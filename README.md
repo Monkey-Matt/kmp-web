@@ -22,6 +22,8 @@ Tutorials used
 [Kotlin web setup guide](https://kotlinlang.org/docs/wasm-get-started.html#before-you-start),
 [Collapsing toolbar](https://www.droidcon.com/2022/10/10/collapsing-toolbar-with-parallax-effect-and-curved-motion-in-jetpack-compose-%F0%9F%98%8E/)
 
+Kodee app icon made with [Kotlin Brand Assets](https://kotlinlang.org/docs/kotlin-brand-assets.html#kotlin-logo), [EasyAppIcon](https://easyappicon.com/)
+
 ### Running locally
 
 You can open the web application by running the `:composeApp:wasmJsBrowserDevelopmentRun` Gradle task.
