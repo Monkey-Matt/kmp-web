@@ -82,7 +82,7 @@ fun DrawerContent(modifier: Modifier = Modifier) {
     Column(modifier = modifier) {
         val safePaddingStart = LocalSafePadding.current.horizontal
         Text(
-            "Drawer title",
+            stringResource(Res.string.drawer_title),
             modifier = Modifier.padding(vertical = 16.dp).padding(start = safePaddingStart),
         )
         Divider()

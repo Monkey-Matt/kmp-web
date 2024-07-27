@@ -10,4 +10,6 @@
     <string name="tutorials_title">Tutorials</string>
     <string name="tutorials_details_1">This project was built by initially following tutorials and adding my own experiments and ideas.</string>
     <string name="tutorials_details_2">   Kotlin web guide: %1$s\n   Collapsing toolbar: %2$s</string>
+
+    <string name="drawer_title">Drawer Title</string>
 </resources>
