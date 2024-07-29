@@ -1,15 +1,17 @@
 <resources>
     <string name="title">Compose for %1$s</string>
-    <string name="about_details">This project was created as a learning excercise to get up to speed with Kotlin Multiplatform on Web and to serve as an example/demo for future projects. It uses Compose Mutliplatform to run the same Kotlin code across Web, Android, and iOS.</string>
+    <string name="about_details">This project was created as a learning exercise to get up to speed with Kotlin Multiplatform on Web and to serve as an example/demo for future projects. It uses Compose Mutliplatform to run the same Kotlin code across Web, Android, and iOS.</string>
     <string name="platforms_title">Platforms</string>
     <string name="platforms_details"> - Web (WasmJs)\n - Android\n - iOS</string>
     <string name="repositories_title">Repositories</string>
     <string name="repositories_details">   Project: %1$s\n   Web Demo: %2$s</string>
     <string name="libraries_title">Libraries</string>
-    <string name="libraries_details">   Kotlin: %1$s\n   Kotlin Multiplatform\n   Compose Multiplatform</string>
+    <string name="libraries_details">   Kotlin: %1$s\n   Kotlin Multiplatform\n   Compose Multiplatform\n   Navigation Compose</string>
     <string name="tutorials_title">Tutorials</string>
     <string name="tutorials_details_1">This project was built by initially following tutorials and adding my own experiments and ideas.</string>
     <string name="tutorials_details_2">   Kotlin web guide: %1$s\n   Collapsing toolbar: %2$s</string>
 
-    <string name="drawer_title">Drawer Title</string>
+    <string name="drawer_title">Navigation Example</string>
+    <string name="page_two_title">Page Two</string>
+    <string name="page_two_back_button">back</string>
 </resources>

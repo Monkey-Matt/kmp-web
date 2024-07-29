@@ -55,6 +55,7 @@ val maxWidth = 800.dp
 @Composable
 fun CollapsingToolbarPhoneContent(
     drawerState: DrawerState,
+    onPage2Click: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val drawerStateWorkaround = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -63,7 +64,10 @@ fun CollapsingToolbarPhoneContent(
     ModalDrawer(
         modifier = modifier,
         drawerContent = {
-            DrawerContent(modifier = Modifier.padding(top = LocalSafePadding.current.top))
+            DrawerContent(
+                onPage2Click = onPage2Click,
+                modifier = Modifier.padding(top = LocalSafePadding.current.top),
+            )
         },
         drawerState = drawerStateWorkaround,
     ) {
@@ -78,14 +82,26 @@ fun CollapsingToolbarPhoneContent(
 }
 
 @Composable
-fun DrawerContent(modifier: Modifier = Modifier) {
+fun DrawerContent(
+    onPage2Click: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Column(modifier = modifier) {
         val safePaddingStart = LocalSafePadding.current.horizontal
         Text(
-            stringResource(Res.string.drawer_title),
-            modifier = Modifier.padding(vertical = 16.dp).padding(start = safePaddingStart),
+            text = stringResource(Res.string.drawer_title),
+            modifier = Modifier
+                .padding(top = 16.dp, bottom = 8.dp)
+                .padding(start = safePaddingStart)
+            ,
         )
         Divider()
+        Button(
+            onClick = onPage2Click,
+            modifier = Modifier.padding(horizontal = safePaddingStart).fillMaxWidth(),
+        ) {
+            Text(stringResource(Res.string.page_two_title))
+        }
     }
 }
 

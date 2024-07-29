@@ -50,6 +50,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHost
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.rememberNavController
 import kmpweb.composeapp.generated.resources.Res
 import kmpweb.composeapp.generated.resources.animation_filled
 import kmpweb.composeapp.generated.resources.animation_outline
@@ -113,7 +117,7 @@ fun App() {
                 enter = fadeIn() + scaleIn(initialScale = 0.5f),
                 exit = fadeOut() + scaleOut(targetScale = 0.5f)
             ) {
-                CollapsingToolbarPhoneContent(
+                PhoneNavigation(
                     drawerState = drawerState,
                     modifier = Modifier.fillMaxSize()
                 )
@@ -264,7 +268,7 @@ fun PhoneInHand(
                 end = 12.dp * scaleFactor,
             )
             CompositionLocalProvider(LocalSafePadding provides safePadding) {
-                CollapsingToolbarPhoneContent(
+                PhoneNavigation(
                     drawerState = drawerState,
                     modifier = Modifier
                         .width(screenHeight * 0.35f)
